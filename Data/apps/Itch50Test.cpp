@@ -10,6 +10,7 @@
 #include "Helpers.h"
 #include "OrderReferenceNumber.h"
 #include "Time.h"
+#include "Compressed.h"
 
 using namespace MLB;
 

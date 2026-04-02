@@ -311,83 +311,83 @@ namespace MLB
             {
                 case 'S' :
                     streamCB->onSystemEventMsg((const SystemEvent*)msg);
-                    std::cout << "S" << std::endl;
+                    //std::cout << "S" << std::endl;
                     break;
                 case 'R' :
                     streamCB->onStockDirectoryMsg((const StockDirectory*)msg);
-                    std::cout << "R" << std::endl;
+                    //std::cout << "R" << std::endl;
                     break;
                 case 'H' :
                     streamCB->onTradingActionMsg((const TradingAction*)msg);
-                    std::cout << "H" << std::endl;
+                    //std::cout << "H" << std::endl;
                     break;
                 case 'Y' :
                     streamCB->onRegSHORestrictMsg((const RegSHORestrict*)msg);
-                    std::cout << "Y" << std::endl;
+                    //std::cout << "Y" << std::endl;
                     break;
                 case 'V' :
                     streamCB->onMWCBLevelMsg((const MWCBLevel*)msg);
-                    std::cout << "V" << std::endl;
+                    //std::cout << "V" << std::endl;
                     break;
                 case 'W' :
                     streamCB->onMWCBStatusMsg((const MWCBStatus*)msg);
-                    std::cout << "W" << std::endl;
+                    //std::cout << "W" << std::endl;
                     break;
                 case 'K' :
                     streamCB->onIPOQuotingMsg((const IPOQuoting*)msg);
-                    std::cout << "K" << std::endl;
+                    //std::cout << "K" << std::endl;
                     break;
                 case 'L' :
                     streamCB->onParticipantPositionMsg((const ParticipantPosition*)msg);
-                    std::cout << "L" << std::endl;
+                    //std::cout << "L" << std::endl;
                     break;
                 case 'A' :
                     streamCB->onAddOrderMsg((const AddOrder*)msg);
-                    std::cout << "A" << std::endl;
+                    //std::cout << "A" << std::endl;
                     break;
                 case 'F' :
                     streamCB->onAddOrderWithMPIDMsg((const AddOrderWithMPID*)msg);
-                    std::cout << "F" << std::endl;
+                    //std::cout << "F" << std::endl;
                     break;
                 case 'E' :
                     streamCB->onOrderExecutedMsg((const OrderExecuted*)msg);
-                    std::cout << "E" << std::endl;
+                    //std::cout << "E" << std::endl;
                     break;
                 case 'C' :
                     streamCB->onOrderExecutedWithPriceMsg((const OrderExecutedWithPrice*)msg);
-                    std::cout << "C" << std::endl;
+                    //std::cout << "C" << std::endl;
                     break;
                 case 'X' :
                     streamCB->onOrderCancelMsg((const OrderCancel*)msg);
-                    std::cout << "X" << std::endl;
+                    //std::cout << "X" << std::endl;
                     break;
                 case 'D' :
                     streamCB->onOrderDeleteMsg((const OrderDelete*)msg);
-                    std::cout << "D" << std::endl;
+                    //std::cout << "D" << std::endl;
                     break;
                 case 'U' :
                     streamCB->onOrderReplaceMsg((const OrderReplace*)msg);
-                    std::cout << "U" << std::endl;
+                    //std::cout << "U" << std::endl;
                     break;
                 case 'P' :
                     streamCB->onTradeMsg((const Trade*)msg);
-                    std::cout << "P" << std::endl;
+                    //std::cout << "P" << std::endl;
                     break;
                 case 'Q' :
                     streamCB->onCrossTradeMsg((const CrossTrade*)msg);
-                    std::cout << "Q" << std::endl;
+                    //std::cout << "Q" << std::endl;
                     break;
                 case 'B' :
                     streamCB->onBrokenTradeMsg((const BrokenTrade*)msg);
-                    std::cout << "B" << std::endl;
+                    //std::cout << "B" << std::endl;
                     break;
                 case 'I' :
                     streamCB->onNetOrderImbalanceMsg((const NetOrderImbalance*)msg);
-                    std::cout << "I" << std::endl;
+                    //std::cout << "I" << std::endl;
                     break;
                 case 'G' :
                     streamCB->onRetailInterestMsg((const RetailInterest*)msg);
-                    std::cout << "G" << std::endl;
+                    //std::cout << "G" << std::endl;
                     break;
                 default :
                     std::cout << "Default" << std::endl;
