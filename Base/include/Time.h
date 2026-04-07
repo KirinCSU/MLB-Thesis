@@ -1,7 +1,9 @@
 #ifndef TIME_H
 #define TIME_H
 
+#include "Elements.h"
 #include <algorithm>
+#include <cstdio>
 
 namespace MLB
 {

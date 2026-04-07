@@ -129,7 +129,6 @@ class Converter : public Itch::StreamCB
 
             if (find != ornToInfo.end())
             {
-                // Follow template behavior: treat as deletion
                 Compressed::SetDeletion(entry,
                                         usec,
                                         find->second.first,
@@ -268,7 +267,6 @@ class Converter : public Itch::StreamCB
         {
             int diff = price - prices[tickerID];
 
-            // diff/100 must fit in [-8, 7]
             if (diff % 100 != 0 || diff > 700 || diff < -800)
             {
                 prices[tickerID] = price;
