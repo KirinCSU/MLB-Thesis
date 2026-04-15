@@ -43,7 +43,14 @@ bool MLB::EventQueue::nextEvent()
     FireEvent(subscribers, (const BookEvent*)event);
 
     events.pop_front();
-    delete event;
+
+    Event* iter = event;
+    while(iter)
+    {
+        Event* next = iter->next;
+        delete iter;
+        iter = next;
+    }
 
     if (publisher)
     {
