@@ -18,6 +18,29 @@ MLB::CompressedReader::CompressedReader(const char* filename, EventQueue* a_even
     nextEvent();
 }
 
+MLB::CompressedReader::CompressedReader(const char* filename, EventQueue* a_eventQueue, const Strings& tickers)
+    : seconds(0),
+      index(0),
+      maxIndex(0),
+      head(0),
+      tail(0),
+      eventQueue(a_eventQueue),
+      file(0)
+{
+    for(int i = 0; i < (int)tickers.size(); i++)
+    {
+        allowedTickers.insert(tickers[i]);
+    }
+
+    file = fopen(filename, "rb");
+    if (!file)
+    {
+        ERROR(String("Unable to open file: ") + filename);
+    }
+
+    nextEvent();
+}
+
 MLB::CompressedReader::~CompressedReader()
 {
     if (file)
@@ -96,9 +119,12 @@ void MLB::CompressedReader::getNextRecord()
                         tickerIDToSpec.push_back(0);
                     }
 
-                    if (!tickerIDToSpec[tickerID])
+                    if(allowedTickers.empty() || allowedTickers.find(ticker) != allowedTickers.end())
                     {
-                        tickerIDToSpec[tickerID] = new Spec(ticker, tickerID);
+                        if (!tickerIDToSpec[tickerID])
+                        {
+                            tickerIDToSpec[tickerID] = new Spec(ticker, tickerID);
+                        }
                     }
 
                     break;

@@ -3,6 +3,7 @@
 
 MLB::EventQueue::EventQueue()
 {
+    totalEvents = 0;
 }
 
 MLB::EventQueue::EventQueue(const EventQueue& rhs)
@@ -38,6 +39,7 @@ bool MLB::EventQueue::nextEvent()
     }
 
     Event* event = events.front();
+    totalEvents++;
     Publisher* publisher = event->publisher;
 
     FireEvent(subscribers, (const BookEvent*)event);
@@ -86,4 +88,9 @@ void MLB::EventQueue::insertEvent(Event* event)
 void MLB::EventQueue::addSubscriber(Subscriber* sub)
 {
     subscribers.push_back(sub);
+}
+
+MLB::Int64 MLB::EventQueue::getTotalEvents() const
+{
+    return totalEvents;
 }

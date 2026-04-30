@@ -4,6 +4,7 @@
 #include "Event.h"
 #include "Subscriber.h"
 #include <deque>
+#include "Elements.h"
 
 namespace MLB
 {
@@ -16,6 +17,7 @@ private:
 private:
     Subscribers subscribers;
     Events events;
+    Int64 totalEvents;
 
 public:
     EventQueue();
@@ -30,6 +32,9 @@ public:
     // Manual Control
     bool haveEvent();
     Event* getNextEvent();
+
+    // Getters
+    Int64 getTotalEvents() const;
 };
 
 }

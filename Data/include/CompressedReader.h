@@ -9,6 +9,7 @@
 #include "Elements.h"
 
 #include <cstdio>
+#include <set>
 
 namespace MLB
 {
@@ -22,6 +23,7 @@ private:
     int seconds;
     std::vector<const Spec*> tickerIDToSpec;
     Ints prices;
+    std::set<String> allowedTickers;
 
     int index;
     int maxIndex;
@@ -35,6 +37,7 @@ private:
 
 public:
     CompressedReader(const char* filename, EventQueue* eventQueue);
+    CompressedReader(const char* filename, EventQueue* eventQueue, const Strings& tickers);
     ~CompressedReader();
 
     void nextEvent();
