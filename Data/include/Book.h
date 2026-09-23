@@ -30,6 +30,9 @@ public:
     bool empty() const;
     int size() const;
 
+    const std::map<double, BookEntryList>& getBids() const;
+    const std::map<double, BookEntryList>& getAsks() const;
+
 private:
     void handleAddition(const BookEvent* event);
     void handleDeletion(const BookEvent* event);

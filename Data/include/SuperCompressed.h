@@ -1,6 +1,8 @@
 #ifndef SUPER_COMPRESSED_H
 #define SUPER_COMPRESSED_H
 
+#include "OrderReferenceNumber.h"
+
 namespace MLB
 {
     namespace SuperCompressed

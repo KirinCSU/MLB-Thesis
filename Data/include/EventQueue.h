@@ -32,6 +32,7 @@ public:
     // Manual Control
     bool haveEvent();
     Event* getNextEvent();
+    Event* peakEvent();
 
     // Getters
     Int64 getTotalEvents() const;

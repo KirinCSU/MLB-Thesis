@@ -31,6 +31,17 @@ MLB::Event* MLB::EventQueue::getNextEvent()
     return result;
 }
 
+MLB::Event* MLB::EventQueue::peakEvent()
+{
+    if(events.empty())
+    {
+        return 0;
+    }
+
+    Event* result = events.front();
+    return result;
+}
+
 bool MLB::EventQueue::nextEvent()
 {
     if (events.empty())

@@ -11,7 +11,13 @@ namespace MLB
         std::cout << Args << std::endl;
         exit(1);
     }
-    
+
+    void ASSERT(bool Args)
+    {
+        std::cout << "Implement This!" << std::endl;
+        return;
+    }
+
     //String
     String Itos(int i)
     {

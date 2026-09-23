@@ -153,3 +153,13 @@ void MLB::Book::handleRevision(const BookEvent* event)
         asks[entry->price].pushBack(entry);
     }
 }
+
+const std::map<double, MLB::BookEntryList>& MLB::Book::getBids() const
+{
+    return bids;
+}
+
+const std::map<double, MLB::BookEntryList>& MLB::Book::getAsks() const
+{
+    return asks;
+}

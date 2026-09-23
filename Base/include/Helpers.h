@@ -6,7 +6,8 @@ namespace MLB
 
     //Alerts
     void ERROR(String Args);
-    
+    void ASSERT(bool Args);
+
     //String
     String Itos(int i);
 
