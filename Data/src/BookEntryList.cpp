@@ -3,7 +3,8 @@
 
 MLB::BookEntryList::BookEntryList()
     : head(0),
-      tail(0)
+      tail(0),
+      volume(0)
 {
 }
 
@@ -26,10 +27,14 @@ void MLB::BookEntryList::pushBack(BookEntry* entry)
     }
 
     tail = entry;
+
+    volume += entry->size;
 }
 
 void MLB::BookEntryList::remove(BookEntry* entry)
 {
+    volume -= entry->size;
+
     if (entry->prev)
     {
         entry->prev->next = entry->next;

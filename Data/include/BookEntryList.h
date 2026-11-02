@@ -21,6 +21,8 @@ public:
 
     BookEntry* front() const;
     bool empty() const;
+
+    double volume;
 };
 
 }

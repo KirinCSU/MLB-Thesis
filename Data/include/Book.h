@@ -14,14 +14,14 @@ namespace MLB
 class Book
 {
 private:
-    const Spec* spec;
-
     std::map<OrderReferenceNumber, BookEntry*> entries;
 
     std::map<double, BookEntryList> bids;
     std::map<double, BookEntryList> asks;
 
 public:
+    const Spec* spec;
+
     Book(const Spec* spec);
     ~Book();
 
@@ -32,6 +32,21 @@ public:
 
     const std::map<double, BookEntryList>& getBids() const;
     const std::map<double, BookEntryList>& getAsks() const;
+
+    double mid() const;
+    double spread() const;
+    double bestBid() const;
+    double bestAsk() const;
+
+    double price(OrderReferenceNumber orn) const;
+    int size(OrderReferenceNumber orn) const;
+    bool side(OrderReferenceNumber orn) const;
+
+    double totalVolume() const;
+    double buyVolumeAt(double price) const;
+    double sellVolumeAt(double price) const;
+    double buyVolumeIn(double low, double high) const;
+    double sellVolumeIn(double low, double high) const;
 
 private:
     void handleAddition(const BookEvent* event);

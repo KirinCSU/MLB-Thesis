@@ -101,6 +101,10 @@ void MLB::Book::handleExecution(const BookEvent* event)
 
     BookEntry* entry = it->second;
 
+    //ADDING VOL
+    BookEntryList& level = entry->buy ? bids[entry->price] : asks[entry->price];
+    level.volume -= event->size();
+
     entry->size -= event->size();
 
     if (entry->size <= 0)
@@ -162,4 +166,188 @@ const std::map<double, MLB::BookEntryList>& MLB::Book::getBids() const
 const std::map<double, MLB::BookEntryList>& MLB::Book::getAsks() const
 {
     return asks;
+}
+
+double MLB::Book::bestBid() const
+{
+    double bid = 0.0;
+
+    if(!bids.empty())
+    {
+        for(auto it = bids.rbegin(); it != bids.rend(); ++it)
+        {
+            if(it->second.volume > 0.0)
+            {
+                bid = it->first;
+                break;
+            }
+        }
+    }
+
+    return bid;
+} 
+
+double MLB::Book::bestAsk() const
+{
+    double ask = 0.0;
+
+    if(!asks.empty())
+    {
+        for(auto it = asks.begin(); it != asks.end(); ++it)
+        {
+            if(it->second.volume > 0.0)
+            {
+                ask = it->first;
+                break;
+            }
+        }
+    }
+
+    return ask;
+}
+
+double MLB::Book::mid() const
+{
+    double bid = bestBid();
+    double ask = bestAsk();
+
+    if(bid == 0.0 || ask == 0.0)
+    {
+        return 0.0;
+    }
+
+    return (bid + ask) / 2.0;
+}
+
+double MLB::Book::spread() const
+{
+    double bid = bestBid();
+    double ask = bestAsk();
+
+    if(bid == 0.0 || ask == 0.0)
+    {
+        return 0.0;
+    }
+
+    return ask - bid;
+}
+
+double MLB::Book::totalVolume() const
+{
+    double volume = 0.0;
+
+    if(!bids.empty())
+    {
+        for(auto it = bids.rbegin(); it != bids.rend(); ++it)
+        {
+            volume += it->second.volume;
+        }
+    }
+
+    if(!asks.empty())
+    {
+        for(auto it = asks.rbegin(); it != asks.rend(); ++it)
+        {
+            volume += it->second.volume;
+        }
+    }
+
+    return volume;
+}
+
+double MLB::Book::buyVolumeAt(double price) const
+{
+    auto it = bids.find(price);
+
+    if(it != bids.end())
+    {
+        return it->second.volume;
+    }
+
+    return 0.0;
+}
+
+double MLB::Book::sellVolumeAt(double price) const
+{
+    auto it = asks.find(price);
+
+    if(it != asks.end())
+    {
+        return it->second.volume;
+    }
+
+    return 0.0;
+}
+
+double MLB::Book::buyVolumeIn(double low, double high) const
+{
+    if(low > high)
+    {
+        return 0.0;
+    }
+
+    double volume = 0.0;
+
+    for(auto it = bids.lower_bound(low); it != bids.upper_bound(high); ++it)
+    {
+        volume += it->second.volume;
+    }
+
+    return volume;
+}
+
+double MLB::Book::sellVolumeIn(double low, double high) const
+{
+    if(low > high)
+    {
+        return 0.0;
+    }
+
+    double volume = 0.0;
+
+    for(auto it = asks.lower_bound(low); it != asks.upper_bound(high); ++it)
+    {
+        volume += it->second.volume;
+    }
+
+    return volume;
+}
+
+double MLB::Book::price(OrderReferenceNumber orn) const
+{
+    auto it = entries.find(orn);
+    if (it == entries.end())
+    {
+        return 0.0;
+    }
+
+    BookEntry* entry = it->second;
+
+    return entry->price;
+}
+
+int MLB::Book::size(OrderReferenceNumber orn) const
+{
+    auto it = entries.find(orn);
+    if (it == entries.end())
+    {
+        return 0;
+    }
+
+    BookEntry* entry = it->second;
+
+    return entry->size;
+}
+
+bool MLB::Book::side(OrderReferenceNumber orn) const
+{
+    auto it = entries.find(orn);
+    if (it == entries.end())
+    {
+        return 0;
+    }
+
+    BookEntry* entry = it->second;
+
+    return entry->buy;
 }
