@@ -1,0 +1,345 @@
+
+#include <iostream>
+#include <iomanip>
+#include <cstdlib>
+#include <chrono>
+
+#include "Books.h"
+#include "CompressedReader.h"
+#include "DailyBars.h"
+#include "EventQueue.h"
+
+#include "BookEvent.h"
+#include "Tokens.h"
+
+#include "Loaders.h"
+
+using namespace MLB;
+
+int main(int argc, char* argv[])
+{
+    if (argc != 4)
+    {
+        std::cout << "Usage: " << argv[0] << " <compressed_file> <daily_bars_file> <bod_file>" << std::endl;
+        return 1;
+   }
+
+    // Select most liquid ticker
+    DailyBars bars(argv[2]);
+    //Strings tickers = bars.topNLiquid(1);
+    String target = "SPY";
+    Strings tickers = {target};
+
+    if (tickers.empty())
+    {
+        std::cerr << "No tickers found" << std::endl;
+        return 1;
+    }
+
+    std::cout << "Selected ticker: " << tickers[0] << std::endl;
+
+    //GET VOL HERE
+    Vols vols = loadVols(argv[3]);
+    std::cout << vols.size() << std::endl;
+
+    //Mid Tracking
+    std::map<String, double> mids;
+
+    for(const auto& ticker : tickers)
+    {
+        mids[ticker] = 0.0;
+    }
+
+    // Objects
+    EventQueue queue;
+    Books books;
+    queue.addSubscriber(&books);
+
+    // Timer
+    auto start = std::chrono::high_resolution_clock::now();
+
+    CompressedReader reader(argv[1], &queue, tickers);
+
+    Event* event;
+    BookEvent* bookEvent;
+
+    Token token;
+
+    // Main event loop
+    while (queue.haveEvent())
+    {
+        event = queue.peakEvent();
+
+        double mid = 0.0;
+        double spread = 0.0;
+        double scaled = 0.0;
+        double volume = 0.0;
+
+        double topBidVolume = 0.0;
+        double topAskVolume = 0.0;
+
+        bool atTop = false;
+        double topBid = 0.0;
+        double topAsk = 0.0;
+
+        if (event->eventType == Event::Type::Book)
+        {
+            bookEvent = dynamic_cast<BookEvent*>(event);
+
+            if (bookEvent != nullptr)
+            {
+
+                if(bookEvent->spec->ticker == target)
+                {
+                    Book* book = books.get(bookEvent->spec);
+
+                    if(book != nullptr)
+                    {
+                        const auto& bids = book->getBids();
+                        const auto& asks = book->getAsks();
+
+                        if(!bids.empty() && !asks.empty())
+                        {
+                            if (!bids.empty() && !asks.empty())
+                            {
+                                double bestBid = 0.0;
+                                double bestAsk = 0.0;
+
+                                // Bids: highest to lowest
+                                for (auto it = bids.rbegin(); it != bids.rend(); ++it)
+                                {
+                                    volume += it->second.volume;
+
+                                    if (bestBid == 0.0 && it->second.volume > 0)
+                                    {
+                                        bestBid = it->first;
+                                        topBidVolume = it->second.volume;
+                                    }
+                                }
+
+                                // Asks: lowest to highest
+                                for (auto it = asks.begin(); it != asks.end(); ++it)
+                                {
+                                    volume += it->second.volume;
+
+                                    if (bestAsk == 0.0 && it->second.volume > 0)
+                                    {
+                                        bestAsk = it->first;
+                                        topAskVolume = it->second.volume;
+                                    }
+                                }
+
+                                if (bestBid > 0.0 && bestAsk > 0.0)
+                                {
+                                    mid = (bestBid + bestAsk) / 2.0;
+                                    scaled = mid * vols.at(target);
+
+                                    spread = bestAsk - bestBid;
+
+                                    if(mids[bookEvent->spec->ticker] == 0.0)
+                                    {
+                                        mids[bookEvent->spec->ticker] = mid;
+
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //std::cout << volume << " " << topBidVolume << " " << topAskVolume << std::endl;
+
+                if(mid == 0.0) 
+                {
+                    std::cout << "Mid 0.0" << std::endl;
+                    queue.nextEvent();
+                    continue;
+                }
+
+                if(scaled == 0.0) 
+                {
+                    std::cout << "Scaled 0.0" << std::endl;
+                    queue.nextEvent();
+                    continue;
+                }
+
+                if(volume == 0.0) 
+                {
+                    std::cout << "Volume 0.0" << std::endl;
+                    queue.nextEvent();
+                    continue;
+                }
+
+                if(topBidVolume == 0.0 || topAskVolume == 0.0)
+                {
+                    std::cout << "Top Volumes 0.0" << std::endl;
+                    queue.nextEvent();
+                    continue;
+                }
+
+                // BEFORE EVENT PROCESSING
+
+                token.spread = spread / scaled;
+                
+                token.topImbalance = (topBidVolume + topAskVolume > 0) ? (topBidVolume - topAskVolume) / (topBidVolume + topAskVolume) : 0.0;
+                //token.innerImbalance = 0.0;
+                //token.outerImbalance = 0.0;
+
+                switch(bookEvent->action)
+                {
+                    case BookEvent::Addition:
+                        token.eventType = EventType::A;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::Deletion:
+                        token.eventType = EventType::D;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::Revision:
+                        token.eventType = EventType::R;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::Execution:
+                        token.eventType = EventType::E;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::HidTrade:
+                        token.eventType = EventType::H;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::InsideQuote:
+                        token.eventType = EventType::Q;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    case BookEvent::InsideTrade:
+                        token.eventType = EventType::I;
+                        token.eventSize = bookEvent->size() / volume;
+                        if(bookEvent->buy() == true)
+                        {
+                            token.eventSide = EventSide::B;
+                        }
+                        else
+                        {
+                            token.eventSide = EventSide::S;
+                        }
+                        break;
+
+                    default:
+                        std::cout << "Shouldn't be here!" << std::endl;
+                        return 0;
+                        break;
+                }
+
+                //token.Eventdepth = EventDepth::T;
+            }
+        }
+
+        // Dispatch event to Books
+        queue.nextEvent();
+
+        // AFTER EVENT PROCESSING
+
+        if(mid != mids[bookEvent->spec->ticker])
+        {
+            token.midMove = MidMove::Y;
+        }
+        else
+        {
+            token.midMove = MidMove::N;
+        }
+
+        if(mid > mids[bookEvent->spec->ticker])
+        {
+            token.midMoveDirection = MidMoveDirection::A;
+        }
+        else
+        {
+            token.midMoveDirection = MidMoveDirection::B;
+        }
+
+        token.midMoveSize = mid - mids[bookEvent->spec->ticker];
+        
+        //END
+        PrintToken(token);
+
+        std::cout << scaled << std::endl;
+        //std::cout << mid << std::endl;
+        //std::cout << mids[bookEvent->spec->ticker] << std::endl;
+
+        mids[bookEvent->spec->ticker] = mid;
+    }
+
+    // Metrics
+    auto end = std::chrono::high_resolution_clock::now();
+    double seconds = std::chrono::duration<double>(end - start).count();
+
+    std::cout << "Finished single-ticker pipeline" << std::endl;
+    std::cout << "Books created: " << books.size() << std::endl;
+    std::cout << "Elapsed: " << seconds << " sec" << std::endl;
+
+    Int64 events = queue.getTotalEvents();
+    std::cout << "Events: " << events << std::endl;
+
+    if (seconds > 0.0)
+    {
+        std::cout << "Throughput: " << events / seconds << " events/sec" << std::endl;
+    }
+
+    return 0;
+}
+
